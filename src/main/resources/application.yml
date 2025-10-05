@@ -1,0 +1,18 @@
+app:
+  base-url: "https://openproject.mozaki.jp/"
+  api-token: "${OP_TOKEN}"
+  csv-path: ""
+  external-key-custom-field-id: 12
+  dry-run: true
+
+  proxy:
+    enabled: false
+    host: corp.proxy.local
+    port: 8080
+    username: ""
+    password: ""
+    non-proxy-hosts: "localhost|127.*|*.example.com"
+
+spring:
+      main:
+        web-application-type: none
