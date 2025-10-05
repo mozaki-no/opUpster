@@ -18,4 +18,9 @@ public enum RelationType {
     String k = s.trim().toLowerCase();
     return Arrays.stream(values()).filter(t -> t.apiName.equalsIgnoreCase(k)).findFirst();
   }
+
+  public String apiKey() {
+	// TODO 自動生成されたメソッド・スタブ
+	return null;
+}
 }

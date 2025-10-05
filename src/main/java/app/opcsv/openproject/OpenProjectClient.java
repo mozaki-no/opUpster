@@ -71,20 +71,24 @@ public class OpenProjectClient {
   }
 
   /* ---------- リレーション作成 ---------- */
-  public Mono<Void> createRelation(long fromId, long toId, String type /* relates, blocks, precedes 等 */) {
-    URI uri = build("/api/v3/relations");
-    var body = Map.of(
-      "_links", Map.of(
-        "from", Map.of("href", "/api/v3/work_packages/" + fromId),
-        "to",   Map.of("href", "/api/v3/work_packages/" + toId),
-        "type", Map.of("href", "/api/v3/relations/types/" + type) // 例: "relates","blocks","precedes"
-      )
-    );
-    return web.post().uri(uri)
-        .bodyValue(body)
-        .retrieve()
-        .bodyToMono(Void.class);
-  }
+  public Mono<Void> createRelation(long fromId, long toId, String typeKey) {
+	  // typeKey: "relates", "blocks", "blockedBy", "precedes", "follows"
+
+	  var body = Map.of(
+	      "_links", Map.of(
+	          "from", Map.of("href", "/api/v3/work_packages/" + fromId),
+	          "to",   Map.of("href", "/api/v3/work_packages/" + toId),
+	          "type", Map.of("href", "/api/v3/relations/types/" + typeKey)  // ←ここが重要
+	      )
+	  );
+
+	  return web.post()
+	      .uri("/api/v3/relations")
+	      .bodyValue(body)
+	      .retrieve()
+	      .bodyToMono(String.class)  // レスポンス本文は使わないが、エラー時の原因把握用に読んでおく
+	      .then();
+	}
 
   /* ---------- 削除 ---------- */
   public Mono<Void> deleteWorkPackage(long id) {

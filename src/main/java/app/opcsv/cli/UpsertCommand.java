@@ -76,9 +76,9 @@ public class UpsertCommand implements CommandLineRunner {
 
     Map<String, Long> keyToId = upsertService.upsertAll(plans);
     parentLinkService.linkParents(plans, keyToId);
-    relationService.applyRelations(plans, keyToId);
+    relationService.applyRelations(plans, keyToId,props.isDryRun());
 
-    Set<String> csvKeys = plans.stream().map(WorkPackagePlan::external_key).collect(Collectors.toSet());
+    Set<String> csvKeys = plans.stream().map(WorkPackagePlan::getexternal_key).collect(Collectors.toSet());
     purgeService.purgeAbsentKeys(csvKeys);
 
     System.out.println("Done.");

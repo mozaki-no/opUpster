@@ -23,38 +23,38 @@ public class UpsertService {
   public Map<String, Long> upsertAll(List<WorkPackagePlan> plans) {
     Map<String, Long> keyToId = new HashMap<>();
     for (var p : plans) {
-	  if (p.external_key() == null || p.external_key().isBlank()) {
-		    System.out.println("[SKIP] external_key is blank. subject=" + p.subject());
+	  if (p.getexternal_key() == null || p.getexternal_key().isBlank()) {
+		    System.out.println("[SKIP] external_key is blank. subject=" + p.getSubject());
 		    continue;
 	  }
       var existingOpt = query.findByexternal_key(props.getProjectId(),
-          props.getexternal_keyCustomFieldId(), p.external_key()).blockOptional();
+          props.getexternal_keyCustomFieldId(), p.getexternal_key()).blockOptional();
 
       if (existingOpt.isPresent()) {
         WorkPackageDto wp = (WorkPackageDto) existingOpt.get();
-        keyToId.put(p.external_key(), wp.getId());
+        keyToId.put(p.getexternal_key(), wp.getId());
         if (!props.isDryRun()) {
           var req = new UpdateWorkPackageReq();
           req.lockVersion  = wp.getLockVersion();
-          req.subject      = p.subject();
-          req.description  = p.description();
-          req.startDate    = toIsoDate(p.startDate());
-          req.dueDate      = toIsoDate(p.dueDate());
-          req.estimatedTime= toIsoDuration(p.estimatedHours());
+          req.subject      = p.getSubject();
+          req.description  = p.getDescription();
+          req.startDate    = toIsoDate(p.getStartDate());
+          req.dueDate      = toIsoDate(p.getDueDate());
+          req.estimatedTime= toIsoDuration(p.getEstimatedHours());
           client.updateWorkPackage(wp.getId(), req).block();
         }
       } else {
         if (!props.isDryRun()) {
           var req = new CreateWorkPackageReq();
-          req.subject       = p.subject();
-          req.description   = p.description();
-          req.startDate     = toIsoDate(p.startDate());
-          req.dueDate       = toIsoDate(p.dueDate());
-          req.estimatedTime = toIsoDuration(p.estimatedHours());
+          req.subject       = p.getSubject();
+          req.description   = p.getDescription();
+          req.startDate     = toIsoDate(p.getStartDate());
+          req.dueDate       = toIsoDate(p.getDueDate());
+          req.estimatedTime = toIsoDuration(p.getEstimatedHours());
           req._links = Map.of("project", Map.of("href", "/api/v3/projects/" + props.getProjectId()));
-          req.customField1  = p.external_key(); // external_key をCF1へ
+          req.customField1  = p.getexternal_key(); // external_key をCF1へ
           var created = client.createWorkPackage(req).block();
-          if (created != null) keyToId.put(p.external_key(), created.getId());
+          if (created != null) keyToId.put(p.getexternal_key(), created.getId());
         }
       }
     }

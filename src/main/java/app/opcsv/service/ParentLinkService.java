@@ -22,16 +22,16 @@ public class ParentLinkService {
 
   public void linkParents(List<WorkPackagePlan> plans, Map<String, Long> keyToId) {
     for (var p : plans) {
-      var parent_key = p.parentexternal_key();
+      var parent_key = p.getexternal_key();
       if (parent_key == null || parent_key.isBlank()) continue;
 
-      Long childId  = keyToId.get(p.external_key());
+      Long childId  = keyToId.get(p.getexternal_key());
       Long parentId = keyToId.get(parent_key);
       if (childId == null || parentId == null) continue;
 
       if (props.isDryRun()) {
         System.out.printf("[DRY] parent link: %s(%d) -> %s(%d)%n",
-            p.external_key(), childId, parent_key, parentId);
+            p.getexternal_key(), childId, parent_key, parentId);
         continue;
       }
 

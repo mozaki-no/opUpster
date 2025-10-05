@@ -26,9 +26,9 @@ public class CsvReader {
       List<CsvRecordDto> out = new ArrayList<>();
       for (CSVRecord r : p) {
     	  var dto = new CsvRecordDto(
-    	      get(r,"external_key","externalKey"), get(r,"subject"), get(r,"type"),
+    	      get(r,"external_key","external_key"), get(r,"subject"), get(r,"type"),
     	      get(r,"description"), get(r,"startDate"), get(r,"dueDate"),
-    	      get(r,"assignee"), get(r,"estimatedHours"), get(r,"parent_key","parentKey"),
+    	      get(r,"assignee"), get(r,"estimatedHours"), get(r,"parent_key","parent_key"),
     	      get(r,"relations")
     	  );
     	  if (dto.external_key() == null || dto.external_key().isBlank()) {
