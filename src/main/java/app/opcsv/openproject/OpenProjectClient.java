@@ -21,6 +21,8 @@ public class OpenProjectClient {
     this.web = web;
     this.props = props;
   }
+  
+  public WebClient webClient() { return this.web; }
 
   private URI build(String path) {
     var base = java.net.URI.create(
@@ -30,12 +32,18 @@ public class OpenProjectClient {
   }
 
   /* ---------- Get ---------- */
+//  public Mono<WorkPackageDto> getWorkPackage(long id) {
+//    URI uri = build("/api/v3/work_packages/" + id);
+//    return web.get().uri(uri)
+//        .retrieve()
+//        .bodyToMono(WorkPackageDto.class);
+//  }
   public Mono<WorkPackageDto> getWorkPackage(long id) {
-    URI uri = build("/api/v3/work_packages/" + id);
-    return web.get().uri(uri)
-        .retrieve()
-        .bodyToMono(WorkPackageDto.class);
-  }
+	  return web.get()
+	      .uri("/api/v3/work_packages/{id}", id)
+	      .retrieve()
+	      .bodyToMono(WorkPackageDto.class);
+	}
   
   /* ---------- Create ---------- */
   public Mono<WorkPackageDto> createWorkPackage(CreateWorkPackageReq req) {

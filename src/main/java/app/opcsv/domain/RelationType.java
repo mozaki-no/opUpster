@@ -1,7 +1,5 @@
 package app.opcsv.domain;
 
-import java.util.Arrays;
-import java.util.Optional;
 
 public enum RelationType {
   RELATES("relates"),
@@ -10,17 +8,28 @@ public enum RelationType {
   PRECEDES("precedes"),
   FOLLOWS("follows");
 
-  public final String apiName;
-  RelationType(String apiName){ this.apiName = apiName; }
+  private final String apiKey;
+  RelationType(String apiKey){ this.apiKey = apiKey; }
+  public String apiKey(){ return apiKey; }
 
-  public static Optional<RelationType> from(String s){
-    if (s == null) return Optional.empty();
-    String k = s.trim().toLowerCase();
-    return Arrays.stream(values()).filter(t -> t.apiName.equalsIgnoreCase(k)).findFirst();
+  public String typeHref(){
+    return "/api/v3/relations/types/" + apiKey;
   }
 
-  public String apiKey() {
-	// TODO 自動生成されたメソッド・スタブ
-	return null;
-}
+  // ★追加：CsvPlanMapper から呼ばれているユーティリティ
+  public static java.util.Optional<RelationType> from(String key){
+    if (key == null) return java.util.Optional.empty();
+    String k = key.trim().toLowerCase();
+    switch (k){
+      case "rel", "related", "relation", "=", "＝", "relates": return java.util.Optional.of(RELATES);
+      case "block", "blocks", "b":                              return java.util.Optional.of(BLOCKS);
+      case "blockedby", "blocked_by", "blocked-by", "bb": return java.util.Optional.of(BLOCKED_BY);
+      case "precedes", "before", "p":                           return java.util.Optional.of(PRECEDES);
+      case "follows", "after", "f":                             return java.util.Optional.of(FOLLOWS);
+      default:
+        // 公式キーそのままのとき
+        for (var t: values()) if (t.apiKey.equals(k)) return java.util.Optional.of(t);
+        return java.util.Optional.empty();
+    }
+  }
 }
