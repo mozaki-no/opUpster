@@ -3,7 +3,8 @@ package app.opcsv.service;
 import app.opcsv.config.AppProperties;
 import app.opcsv.domain.WorkPackagePlan;
 import app.opcsv.openproject.OpenProjectClient;
-import app.opcsv.openproject.OpenProjectQuery;
+import app.opcsv.openproject.dto.WorkPackageDto;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,28 +13,38 @@ import java.util.Map;
 @Service
 public class ParentLinkService {
   private final OpenProjectClient client;
-  private final OpenProjectQuery  query;
-  private final AppProperties     props;
+  private final AppProperties props;
 
-  public ParentLinkService(OpenProjectClient client, OpenProjectQuery query, AppProperties props) {
-    this.client = client; this.query = query; this.props = props;
+  public ParentLinkService(OpenProjectClient client, AppProperties props) {
+    this.client = client;
+    this.props = props;
   }
 
   public void linkParents(List<WorkPackagePlan> plans, Map<String, Long> keyToId) {
     for (var p : plans) {
-      String parentKey = p.parentExternalKey();
-      if (parentKey == null || parentKey.isBlank()) continue;
+      var parent_key = p.parentexternal_key();
+      if (parent_key == null || parent_key.isBlank()) continue;
 
-      Long childId  = keyToId.get(p.externalKey());
-      Long parentId = keyToId.get(parentKey);
+      Long childId  = keyToId.get(p.external_key());
+      Long parentId = keyToId.get(parent_key);
       if (childId == null || parentId == null) continue;
 
-      var child = query.findByExternalKey(props.getProjectId(),
-          props.getExternalKeyCustomFieldId(), p.externalKey()).block();
-      if (child == null) continue;
-      if (!props.isDryRun()) {
-        client.setParent(childId, child.getLockVersion(), parentId).block();
+      if (props.isDryRun()) {
+        System.out.printf("[DRY] parent link: %s(%d) -> %s(%d)%n",
+            p.external_key(), childId, parent_key, parentId);
+        continue;
       }
+
+      // lockVersion を取る
+      WorkPackageDto child = client.getWorkPackage(childId).block();
+      if (child == null || child.getLockVersion() == null) {
+        System.out.printf("[WARN] cannot fetch child or lockVersion. id=%d%n", childId);
+        continue;
+      }
+
+      client.setParent(childId, child.getLockVersion(), parentId).block();
+      System.out.printf("[OK ] parent linked: child=%d -> parent=%d (lv=%d)%n",
+          childId, parentId, child.getLockVersion());
     }
   }
 }

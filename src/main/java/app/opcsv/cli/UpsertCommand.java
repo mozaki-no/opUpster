@@ -54,7 +54,7 @@ public class UpsertCommand implements CommandLineRunner {
     overrideIfPresent("project-id", v -> props.setProjectId(Integer.parseInt(v)));
     overrideIfPresent("csv-path", props::setCsvPath);
     overrideIfPresent("base-url", props::setBaseUrl);
-    overrideIfPresent("external-key-custom-field-id", v -> props.setExternalKeyCustomFieldId(Integer.parseInt(v)));
+    overrideIfPresent("external-key-custom-field-id", v -> props.setexternal_keyCustomFieldId(Integer.parseInt(v)));
     overrideIfPresent("dry-run", v -> props.setDryRun(Boolean.parseBoolean(v)));
     // proxy系（必要なら）
     overrideIfPresent("proxy.enabled", v -> props.getProxy().setEnabled(Boolean.parseBoolean(v)));
@@ -71,13 +71,14 @@ public class UpsertCommand implements CommandLineRunner {
     System.out.printf("Start upsert (projectId=%d, dryRun=%s)%n", props.getProjectId(), props.isDryRun());
 
     var rows  = csvReader.read(props.getCsvPath());
-    var plans = rows.stream().map(app.opcsv.mapper.CsvPlanMapper::toPlan).toList(); // ★ static 参照！
+    var plans = rows.stream().map(app.opcsv.mapper.CsvPlanMapper::toPlan).toList();
+
 
     Map<String, Long> keyToId = upsertService.upsertAll(plans);
     parentLinkService.linkParents(plans, keyToId);
     relationService.applyRelations(plans, keyToId);
 
-    Set<String> csvKeys = plans.stream().map(WorkPackagePlan::externalKey).collect(Collectors.toSet());
+    Set<String> csvKeys = plans.stream().map(WorkPackagePlan::external_key).collect(Collectors.toSet());
     purgeService.purgeAbsentKeys(csvKeys);
 
     System.out.println("Done.");

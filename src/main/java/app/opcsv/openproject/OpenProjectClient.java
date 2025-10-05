@@ -29,6 +29,14 @@ public class OpenProjectClient {
     return UriComponentsBuilder.fromUri(base).path(path).build(true).toUri();
   }
 
+  /* ---------- Get ---------- */
+  public Mono<WorkPackageDto> getWorkPackage(long id) {
+    URI uri = build("/api/v3/work_packages/" + id);
+    return web.get().uri(uri)
+        .retrieve()
+        .bodyToMono(WorkPackageDto.class);
+  }
+  
   /* ---------- Create ---------- */
   public Mono<WorkPackageDto> createWorkPackage(CreateWorkPackageReq req) {
     URI uri = build("/api/v3/work_packages");

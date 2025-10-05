@@ -1,7 +1,7 @@
 package app.opcsv.csv;
 
 public record CsvRecordDto(
-    String externalKey,
+    String external_key,
     String subject,
     String type,
     String description,
@@ -9,6 +9,6 @@ public record CsvRecordDto(
     String dueDate,
     String assignee,
     String estimatedHours,
-    String parentKey,
+    String parent_key,
     String relations
 ) {}

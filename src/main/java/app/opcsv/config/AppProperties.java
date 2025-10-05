@@ -9,7 +9,7 @@ public class AppProperties {
   private String apiToken;
   private int projectId;
   private String csvPath;
-  private int externalKeyCustomFieldId;
+  private int external_keyCustomFieldId;
   private boolean dryRun;
 
   public static class Proxy {
@@ -44,8 +44,8 @@ public class AppProperties {
   public void setProjectId(int projectId) { this.projectId = projectId; }
   public String getCsvPath() { return csvPath; }
   public void setCsvPath(String csvPath) { this.csvPath = csvPath; }
-  public int getExternalKeyCustomFieldId() { return externalKeyCustomFieldId; }
-  public void setExternalKeyCustomFieldId(int externalKeyCustomFieldId) { this.externalKeyCustomFieldId = externalKeyCustomFieldId; }
+  public int getexternal_keyCustomFieldId() { return external_keyCustomFieldId; }
+  public void setexternal_keyCustomFieldId(int external_keyCustomFieldId) { this.external_keyCustomFieldId = external_keyCustomFieldId; }
   public boolean isDryRun() { return dryRun; }
   public void setDryRun(boolean dryRun) { this.dryRun = dryRun; }
   public Proxy getProxy() { return proxy; }

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record WorkPackagePlan(
-    String externalKey,
+    String external_key,
     String subject,
     String type,
     String description,
@@ -13,6 +13,6 @@ public record WorkPackagePlan(
     LocalDate dueDate,
     String assignee,
     BigDecimal estimatedHours,
-    String parentExternalKey,
+    String parentexternal_key,
     List<RelationSpec> relationSpecs
 ) {}

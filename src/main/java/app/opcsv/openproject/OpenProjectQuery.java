@@ -3,6 +3,8 @@ package app.opcsv.openproject;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,13 +32,17 @@ public class OpenProjectQuery {
 	}
 
   /** external_key(=custom field) 完全一致で1件取得（無ければ empty） */
-  public Mono<WorkPackageDto> findByExternalKey(int projectId, int customFieldId, String externalKey) {
+  public Mono<Object> findByexternal_key(int projectId, int customFieldId, String external_key) {
+	  if (external_key == null || external_key.isBlank()) {
+		    System.out.println("[SKIP] query.findByexternal_key: blank external_key");
+		    return Mono.just(Optional.empty());
+	  }
 	  String filtersJson = """
 	    [
 	      {"project":{"operator":"=","values":["%d"]}},
 	      {"customField%d":{"operator":"=","values":["%s"]}}
 	    ]
-	  """.formatted(projectId, customFieldId, externalKey);
+	  """.formatted(projectId, customFieldId, external_key);
 
 	  String encoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8);
 
@@ -49,7 +55,7 @@ public class OpenProjectQuery {
 	      .toUri();
 
 	  return web.get()
-	      .uri(uri)      // ★ 絶対URIを渡す
+	      .uri(uri)      // ★ 絶対URIを渡yす
 	      .retrieve()
 	      .bodyToMono(SearchResult.class)
 	      .flatMap(res -> (res != null && res._embedded != null

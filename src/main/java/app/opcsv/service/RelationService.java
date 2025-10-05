@@ -15,8 +15,8 @@ public class RelationService {
   public void applyRelations(List<WorkPackagePlan> plans, Map<String, Long> keyToId) {
     for (var p : plans) {
       for (var rel : p.relationSpecs()) {
-        var fromId = keyToId.get(p.externalKey());
-        var toId   = keyToId.get(rel.toExternalKey());
+        var fromId = keyToId.get(p.external_key());
+        var toId   = keyToId.get(rel.toexternal_key());
         if (fromId == null || toId == null) continue;
         if (!props.isDryRun()) client.createRelation(fromId, toId, rel.type().apiName).block();
       }
