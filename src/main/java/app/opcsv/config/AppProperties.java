@@ -1,15 +1,17 @@
 package app.opcsv.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
+@EnableConfigurationProperties(AppProperties.class)   // ★ これ追加
 public class AppProperties {
 
   private String baseUrl;
   private String apiToken;
   private int projectId;
   private String csvPath;
-  private int external_keyCustomFieldId;
+  private int externalKeyCustomFieldId;
   private boolean dryRun;
 
   public static class Proxy {
@@ -44,10 +46,14 @@ public class AppProperties {
   public void setProjectId(int projectId) { this.projectId = projectId; }
   public String getCsvPath() { return csvPath; }
   public void setCsvPath(String csvPath) { this.csvPath = csvPath; }
-  public int getexternal_keyCustomFieldId() { return external_keyCustomFieldId; }
-  public void setexternal_keyCustomFieldId(int external_keyCustomFieldId) { this.external_keyCustomFieldId = external_keyCustomFieldId; }
+  public int getexternal_keyCustomFieldId() { return externalKeyCustomFieldId; }
+  public void setexternal_keyCustomFieldId(int external_keyCustomFieldId) { this.externalKeyCustomFieldId = external_keyCustomFieldId; }
   public boolean isDryRun() { return dryRun; }
   public void setDryRun(boolean dryRun) { this.dryRun = dryRun; }
   public Proxy getProxy() { return proxy; }
   public void setProxy(Proxy proxy) { this.proxy = proxy; }
+  // ★ 正式版
+  public int getExternalKeyCustomFieldId() { return externalKeyCustomFieldId; }
+  public void setExternalKeyCustomFieldId(int v) { this.externalKeyCustomFieldId = v; }
+
 }

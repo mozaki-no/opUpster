@@ -1,3 +1,20 @@
+app:
+  base-url: https://openproject.mozaki.jp
+  api-token: ${OP_TOKEN:changeme}
+  project-id: 3
+  csv-path: "C:/tmp/up.csv"
+  external-key-custom-field-id: 1   # ← ここを正式名に
+  dry-run: true
+
+  proxy:
+    enabled: false
+    host:
+    port: 0
+    username:
+    password:
+    non-proxy-hosts:
+
+
 spring:
   main:
     web-application-type: none   # CLIモード
