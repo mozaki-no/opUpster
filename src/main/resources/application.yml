@@ -1,9 +1,9 @@
 app:
-  base-url: https://openproject.mozaki.jp
+  base-url: default-base-url
   api-token: ${OP_TOKEN:changeme}
   project-id: 3
-  csv-path: "C:/tmp/up.csv"
-  external-key-custom-field-id: 1   # ← ここを正式名に
+  csv-path: "default-csv-path"
+  external-key-custom-field-id: 1
   dry-run: true
 
   proxy:
@@ -17,7 +17,7 @@ app:
 
 spring:
   main:
-    web-application-type: none   # CLIモード
+    web-application-type: none
   output:
     ansi:
       enabled: DETECT

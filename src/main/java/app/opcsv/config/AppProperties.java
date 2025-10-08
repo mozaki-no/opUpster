@@ -1,59 +1,32 @@
 package app.opcsv.config;
 
+import jakarta.validation.constraints.*;
+import lombok.Getter; import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
+@Configuration
 @ConfigurationProperties(prefix = "app")
-@EnableConfigurationProperties(AppProperties.class)   // ★ これ追加
+@Validated
+@Getter @Setter
 public class AppProperties {
+    @NotBlank private String apiToken;
+    @NotNull  private Integer projectId;
+    @NotBlank private String baseUrl;
+    @NotNull  private Integer externalKeyCustomFieldId;
+    @NotBlank private String csvPath;
+    private boolean dryRun = true;
+    @Getter @Setter
+    public static class Proxy {
+      private boolean enabled;
+      private String host;
+      private Integer port;
+      private String username;
+      private String password;
+      private String nonProxyHosts;
+    }
 
-  private String baseUrl;
-  private String apiToken;
-  private int projectId;
-  private String csvPath;
-  private int externalKeyCustomFieldId;
-  private boolean dryRun;
-
-  public static class Proxy {
-    private boolean enabled;
-    private String host;
-    private int port;
-    private String username;
-    private String password;
-    private String nonProxyHosts;
-
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public String getHost() { return host; }
-    public void setHost(String host) { this.host = host; }
-    public int getPort() { return port; }
-    public void setPort(int port) { this.port = port; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getNonProxyHosts() { return nonProxyHosts; }
-    public void setNonProxyHosts(String nonProxyHosts) { this.nonProxyHosts = nonProxyHosts; }
-  }
-
-  private Proxy proxy = new Proxy();
-
-  public String getBaseUrl() { return baseUrl; }
-  public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
-  public String getApiToken() { return apiToken; }
-  public void setApiToken(String apiToken) { this.apiToken = apiToken; }
-  public int getProjectId() { return projectId; }
-  public void setProjectId(int projectId) { this.projectId = projectId; }
-  public String getCsvPath() { return csvPath; }
-  public void setCsvPath(String csvPath) { this.csvPath = csvPath; }
-  public int getexternal_keyCustomFieldId() { return externalKeyCustomFieldId; }
-  public void setexternal_keyCustomFieldId(int external_keyCustomFieldId) { this.externalKeyCustomFieldId = external_keyCustomFieldId; }
-  public boolean isDryRun() { return dryRun; }
-  public void setDryRun(boolean dryRun) { this.dryRun = dryRun; }
-  public Proxy getProxy() { return proxy; }
-  public void setProxy(Proxy proxy) { this.proxy = proxy; }
-  // ★ 正式版
-  public int getExternalKeyCustomFieldId() { return externalKeyCustomFieldId; }
-  public void setExternalKeyCustomFieldId(int v) { this.externalKeyCustomFieldId = v; }
-
+    // デフォルトインスタンスでNPE回避
+    private Proxy proxy = new Proxy();
 }

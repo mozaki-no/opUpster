@@ -8,7 +8,7 @@ import app.opcsv.service.ParentLinkService;
 import app.opcsv.service.PurgeService;
 import app.opcsv.service.RelationService;
 import app.opcsv.service.UpsertService;
-import org.springframework.boot.CommandLineRunner;
+
 import org.springframework.stereotype.Component;
 import org.springframework.boot.ApplicationArguments;
 
@@ -18,12 +18,11 @@ import java.util.stream.Collectors;
 import java.util.function.Consumer; 
 
 @Component
-public class UpsertCommand implements CommandLineRunner {
+public class UpsertCommand {
 
   private final AppProperties props;
   private final ApplicationArguments appArgs;
   private final CsvReader csvReader;
-//  private final CsvPlanMapper mapper;
   private final UpsertService upsertService;
   private final ParentLinkService parentLinkService;
   private final RelationService relationService;
@@ -33,7 +32,6 @@ public class UpsertCommand implements CommandLineRunner {
       AppProperties props,
       ApplicationArguments appArgs,
       CsvReader csvReader,
-//      CsvPlanMapper mapper,
       UpsertService upsertService,
       ParentLinkService parentLinkService,
       RelationService relationService,
@@ -41,20 +39,18 @@ public class UpsertCommand implements CommandLineRunner {
     this.props = props;
     this.appArgs = appArgs;
     this.csvReader = csvReader;
-//    this.mapper = mapper;
     this.upsertService = upsertService;
     this.parentLinkService = parentLinkService;
     this.relationService = relationService;
     this.purgeService = purgeService;
   }
 
-  @Override
-  public void run(String... args) throws Exception {
+  public void execute(String... args) throws Exception {
     // === ここでCLI引数があれば properties を上書きする ===
     overrideIfPresent("project-id", v -> props.setProjectId(Integer.parseInt(v)));
     overrideIfPresent("csv-path", props::setCsvPath);
     overrideIfPresent("base-url", props::setBaseUrl);
-    overrideIfPresent("external-key-custom-field-id", v -> props.setexternal_keyCustomFieldId(Integer.parseInt(v)));
+    overrideIfPresent("external-key-custom-field-id", v -> props.setExternalKeyCustomFieldId(Integer.parseInt(v)));
     overrideIfPresent("dry-run", v -> props.setDryRun(Boolean.parseBoolean(v)));
     // proxy系（必要なら）
     overrideIfPresent("proxy.enabled", v -> props.getProxy().setEnabled(Boolean.parseBoolean(v)));
@@ -83,7 +79,7 @@ public class UpsertCommand implements CommandLineRunner {
 
     System.out.println("Done.");
   }
-  
+
   private void overrideIfPresent(String opt, Consumer<String> setter) {
     if (appArgs.containsOption(opt)) {
       var list = appArgs.getOptionValues(opt);
