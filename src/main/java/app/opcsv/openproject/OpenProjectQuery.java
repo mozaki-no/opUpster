@@ -1,117 +1,91 @@
 package app.opcsv.openproject;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Optional;
-
+import app.opcsv.openproject.dto.SearchResultDto;
+import app.opcsv.openproject.dto.WorkPackageDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
-import app.opcsv.config.AppProperties;
-import app.opcsv.openproject.dto.WorkPackageDto;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
+@RequiredArgsConstructor
 public class OpenProjectQuery {
 
+  /** WebClientConfig で定義した Bean 名に合わせる（例: @Bean name="webClient"） */
+  @Qualifier("webClient")
   private final WebClient web;
-  private final AppProperties props;
 
-  public OpenProjectQuery(WebClient web, AppProperties props) {
-    this.web = web;
-    this.props = props;
+  /**
+   * external_key(=custom field) 完全一致で1件取得（無ければ empty）
+   * @param projectId プロジェクトID
+   * @param customFieldId external_key を格納しているカスタムフィールドID（例: 1）
+   * @param externalKey 参照キー
+   */
+  public Mono<WorkPackageDto> findByexternal_key(int projectId, int customFieldId, String externalKey) {
+    if (externalKey == null || externalKey.isBlank()) {
+      return Mono.empty();
+    }
+
+    // OpenProject filters JSON（SpringがURLエンコードしてくれるので生文字でOK）
+    String filtersJson = """
+		[
+		  {"project":{"operator":"=","values":["%d"]}},
+		  {"customField%d":{"operator":"=","values":["%s"]}}
+		]
+		""".formatted(projectId, customFieldId, externalKey);
+    
+//    String filtersEncoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8);
+
+    return web.get()
+    	    .uri(uri -> uri
+    	        .path("/api/v3/work_packages")
+    	        .queryParam("filters", filtersJson) // ★filters をエンコード後の文字列で
+    	        .queryParam("pageSize", 1)
+    	        .build() // ★値は既にエンコード済みとして扱う
+    	    )
+    	    .retrieve()
+    	    .bodyToMono(SearchResultDto.class)
+    	    .flatMap(res -> {
+    	      List<WorkPackageDto> els = res.embeddedElements();
+    	      return (els != null && !els.isEmpty()) ? Mono.just(els.get(0)) : Mono.empty();
+    	    });
   }
-  
-	private String normBaseUrl(String baseUrl) {
-	 return baseUrl != null && baseUrl.endsWith("/")
-	     ? baseUrl.substring(0, baseUrl.length() - 1)
-	     : baseUrl;
-	}
 
-  /** external_key(=custom field) 完全一致で1件取得（無ければ empty） */
-  public Mono<Object> findByexternal_key(int projectId, int customFieldId, String external_key) {
-	  if (external_key == null || external_key.isBlank()) {
-		    System.out.println("[SKIP] query.findByexternal_key: blank external_key");
-		    return Mono.just(Optional.empty());
-	  }
+  /** プロジェクト配下のWPを全部（必要最小DTO） */
+  public Mono<List<WorkPackageDto>> listAllByProject(int projectId) {
 	  String filtersJson = """
 	    [
-	      {"project":{"operator":"=","values":["%d"]}},
-	      {"customField%d":{"operator":"=","values":["%s"]}}
+	      {"project":{"operator":"=","values":["%d"]}}
 	    ]
-	  """.formatted(projectId, customFieldId, external_key);
+	    """.formatted(projectId);
 
-	  String encoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8);
+	  return fetchPage(filtersJson, 0)
+	      .expand(res -> {
+	        int next = res.getOffset() + res.getCount();
+	        boolean hasNext = next < res.getTotal();
+	        return hasNext ? fetchPage(filtersJson, next) : Mono.empty();
+	      })
+	      .map(SearchResultDto::embeddedElements)
+	      .flatMapIterable(list -> list == null ? List.of() : list)
+	      .collectList();
+	}
 
-	  URI base = URI.create(normBaseUrl(props.getBaseUrl()));   // ★ fromUri を使う
-	  URI uri = UriComponentsBuilder.fromUri(base)
-	      .path("/api/v3/work_packages")
-	      .queryParam("filters", encoded)   // 既に encode 済みの値を渡す
-	      .queryParam("pageSize", "2")
-	      .build(true)                      // ★ 再エンコード＆テンプレ展開しない
-	      .toUri();
+  private Mono<SearchResultDto> fetchPage(String filtersJson, int offset) {
+//	  String filtersEncoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8); // ★追加
 
 	  return web.get()
-	      .uri(uri)      // ★ 絶対URIを渡yす
+	      .uri(uri -> uri
+	          .path("/api/v3/work_packages")
+	          .queryParam("filters", filtersJson) // ★エンコード後
+	          .queryParam("pageSize", 200)
+	          .queryParam("offset", offset)
+	          .build() // ★値は既にエンコード済みとして扱う
+	      )
 	      .retrieve()
-	      .bodyToMono(SearchResult.class)
-	      .flatMap(res -> (res != null && res._embedded != null
-	                     && res._embedded.elements != null
-	                     && !res._embedded.elements.isEmpty())
-	                     ? Mono.just(res._embedded.elements.get(0))
-	                     : Mono.empty());
+	      .bodyToMono(SearchResultDto.class);
 	}
-
-  /** プロジェクト全件（最小DTO） */
-  public Mono<List<WorkPackageDto>> listAllByProject(int projectId) {
-    String filtersJson = """
-      [
-        {"project":{"operator":"=","values":["%d"]}}
-      ]
-    """.formatted(projectId);
-
-    return fetchPage(filtersJson, 0)
-        .expand(res -> {
-          int next = res.offset + res.count;
-          boolean hasNext = next < res.total;
-          return hasNext ? fetchPage(filtersJson, next) : Mono.empty();
-        })
-        .map(res -> res._embedded == null ? List.<WorkPackageDto>of() : res._embedded.elements)
-        .flatMap(reactor.core.publisher.Flux::fromIterable)
-        .collectList();
-  }
-
-  private Mono<SearchResult> fetchPage(String filtersJson, int offset) {
-	  String encoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8);
-
-	  URI base = URI.create(normBaseUrl(props.getBaseUrl()));   // ★ fromUri を使う
-	  URI uri = UriComponentsBuilder.fromUri(base)
-	      .path("/api/v3/work_packages")
-	      .queryParam("filters", encoded)
-	      .queryParam("pageSize", "200")
-	      .queryParam("offset", offset)
-	      .build(true)
-	      .toUri();
-
-	  return web.get().uri(uri).retrieve().bodyToMono(SearchResult.class);
-	}
-
-  // ====== 必要最小の受け取り用DTO（検索結果） ======
-  @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
-  static class SearchResult {
-    public int total;
-    public int count;
-    public int offset;
-    @com.fasterxml.jackson.annotation.JsonProperty("_embedded")
-    public Embedded _embedded;
-
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
-    static class Embedded {
-      @com.fasterxml.jackson.annotation.JsonProperty("elements")
-      public List<WorkPackageDto> elements;
-    }
-  }
 }

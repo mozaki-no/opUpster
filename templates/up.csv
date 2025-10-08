@@ -1,0 +1,4 @@
+external_key,subject,type,description,parent_external_key
+A-001,Root Epic 1,Epic,Top level epic,
+A-101,Feature 1-01,Feature,Child feature,A-001
+A-102,Feature 1-02,Feature,Child feature,A-001
