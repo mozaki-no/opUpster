@@ -57,7 +57,7 @@ public class UpsertService {
             req.estimatedTime = toIsoDuration(p.getEstimatedHours());
             // 必要に応じて links / customField を追加
 
-            WorkPackageDto updated = client.updateWorkPackage(wp.getId(), req).block();
+//            WorkPackageDto updated = client.updateWorkPackage(wp.getId(), req).block();
             log.info("[ OK] updated id={} key={} subject={}", wp.getId(), extKey, p.getSubject());
           }
 

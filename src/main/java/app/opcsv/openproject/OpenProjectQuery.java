@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -31,24 +32,27 @@ public class OpenProjectQuery {
 
     // OpenProject filters JSON（SpringがURLエンコードしてくれるので生文字でOK）
     String filtersJson = """
-      [
-        {"project":{"operator":"=","values":["%d"]}},
-        {"customField%d":{"operator":"=","values":["%s"]}}
-      ]
-      """.formatted(projectId, customFieldId, externalKey);
+		[
+		  {"project":{"operator":"=","values":["%d"]}},
+		  {"customField%d":{"operator":"=","values":["%s"]}}
+		]
+		""".formatted(projectId, customFieldId, externalKey);
+    
+//    String filtersEncoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8);
 
     return web.get()
-        .uri(uri -> uri
-            .path("/api/v3/work_packages")
-            .queryParam("filters", filtersJson)
-            .queryParam("pageSize", 1)
-            .build())
-        .retrieve()
-        .bodyToMono(SearchResultDto.class)
-        .flatMap(res -> {
-          List<WorkPackageDto> els = res.embeddedElements();
-          return (els != null && !els.isEmpty()) ? Mono.just(els.get(0)) : Mono.empty();
-        });
+    	    .uri(uri -> uri
+    	        .path("/api/v3/work_packages")
+    	        .queryParam("filters", filtersJson) // ★filters をエンコード後の文字列で
+    	        .queryParam("pageSize", 1)
+    	        .build() // ★値は既にエンコード済みとして扱う
+    	    )
+    	    .retrieve()
+    	    .bodyToMono(SearchResultDto.class)
+    	    .flatMap(res -> {
+    	      List<WorkPackageDto> els = res.embeddedElements();
+    	      return (els != null && !els.isEmpty()) ? Mono.just(els.get(0)) : Mono.empty();
+    	    });
   }
 
   /** プロジェクト配下のWPを全部（必要最小DTO） */
@@ -65,20 +69,23 @@ public class OpenProjectQuery {
 	        boolean hasNext = next < res.getTotal();
 	        return hasNext ? fetchPage(filtersJson, next) : Mono.empty();
 	      })
-	      .map(SearchResultDto::embeddedElements)                 // Flux<List<WorkPackageDto>>
-	      .flatMapIterable(list -> list == null ? List.of() : list) // ← ここを修正（Flux<WorkPackageDto>）
-	      .collectList();                                         // Mono<List<WorkPackageDto>>
+	      .map(SearchResultDto::embeddedElements)
+	      .flatMapIterable(list -> list == null ? List.of() : list)
+	      .collectList();
 	}
 
   private Mono<SearchResultDto> fetchPage(String filtersJson, int offset) {
-    return web.get()
-        .uri(uri -> uri
-            .path("/api/v3/work_packages")
-            .queryParam("filters", filtersJson)
-            .queryParam("pageSize", 200)
-            .queryParam("offset", offset)
-            .build())
-        .retrieve()
-        .bodyToMono(SearchResultDto.class);
-  }
+//	  String filtersEncoded = UriUtils.encode(filtersJson, StandardCharsets.UTF_8); // ★追加
+
+	  return web.get()
+	      .uri(uri -> uri
+	          .path("/api/v3/work_packages")
+	          .queryParam("filters", filtersJson) // ★エンコード後
+	          .queryParam("pageSize", 200)
+	          .queryParam("offset", offset)
+	          .build() // ★値は既にエンコード済みとして扱う
+	      )
+	      .retrieve()
+	      .bodyToMono(SearchResultDto.class);
+	}
 }

@@ -62,10 +62,10 @@ public class WebClientConfig {
   private ExchangeFilterFunction correlationIdFilter() {
     return (req, next) -> {
       String cid = UUID.randomUUID().toString();
-      var mutated = WebClient
-          .RequestHeadersSpec.class.isAssignableFrom(req.getClass())
-          ? req
-          : req; // 型安全のためthisまま。CIDはヘッダに入れる
+//      var mutated = WebClient
+//          .RequestHeadersSpec.class.isAssignableFrom(req.getClass())
+//          ? req
+//          : req; // 型安全のためthisまま。CIDはヘッダに入れる
       var newReq = org.springframework.web.reactive.function.client.ClientRequest
           .from(req)
           .header("X-Correlation-Id", cid)
